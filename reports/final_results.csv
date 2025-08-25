@@ -1,0 +1,2 @@
+date,model,threshold,accuracy,f1_score,roc_auc,brier_score
+2025-08-05,MLPClassifier,0.47,0.587,0.7397,0.4834,0.2479
