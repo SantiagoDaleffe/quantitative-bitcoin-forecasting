@@ -2,6 +2,8 @@
 
 This project applies a binary classification approach to predict the next-day movement of Bitcoin closing price using technical indicators and time series cross-validation.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Poggerv2/repositorio/blob/main/notebooks/03_modeling.ipynb)
+
 ## Structure
 
 - `data/`: Raw and processed CSV files.
@@ -73,8 +75,6 @@ To ensure the absence of data leakage, `PurgedGroupTimeSeriesSplit` was applied:
 Results were consistent with the rolling test, confirming that the main validation process was leakage-free.
 
 ## Installation
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Poggerv2/repositorio/blob/main/notebooks/03_modeling.ipynb)
 
 - Python 3.10 or higher
 
