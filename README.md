@@ -74,6 +74,8 @@ Results were consistent with the rolling test, confirming that the main validati
 
 ## Installation
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Poggerv2/repositorio/blob/main/notebooks/03_modeling.ipynb)
+
 - Python 3.10 or higher
 
 ### If you just want to **run the final model and reproduce results**:
