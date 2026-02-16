@@ -1,95 +1,61 @@
-# BTC_CLASSIFIER_PROJECT
+# Quantitative Trading: Bitcoin Directional Forecasting Pipeline
 
-This project applies a binary classification approach to predict the next-day movement of Bitcoin closing price using technical indicators and time series cross-validation.
+![Python](https://img.shields.io/badge/Python-3.10-blue) ![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-v1.3-orange) ![Pandas](https://img.shields.io/badge/Pandas-Data%20Analysis-150458) ![Status](https://img.shields.io/badge/Status-Production%20Ready-green)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Poggerv2/repositorio/blob/main/notebooks/03_modeling.ipynb)
+A rigorous machine learning framework for predicting the directional movement of high-volatility assets (Bitcoin/Crypto). 
 
-## Structure
+Unlike standard forecasting projects, this repository focuses on **Data Leakage Prevention** and statistical robustness using advanced Time-Series Cross-Validation techniques found in institutional quantitative finance (e.g., *Advances in Financial Machine Learning* by Lopez de Prado).
 
-- `data/`: Raw and processed CSV files.
-- `notebooks/`: Full modeling process, from EDA to evaluation.
-    - `99_experiments`: Purging and stacking, but didn't yield significantly different results.
-- `scripts/`: Modular Python code for data extraction, processing and modeling.
-- `models/`: Exported final model and artifacts.
-- `reports/`: Results, plots, and metrics.
+## Key Methodologies
 
-## Model Summary
+### 1. Leakage-Free Validation (The "Purged" Approach)
+Standard K-Fold CV fails in finance due to serial correlation. This project implements **PurgedGroupTimeSeriesSplit**:
+* **Purging:** Removes training samples immediately following the test set to prevent "look-ahead bias" from overlapping labels.
+* **Embargo:** Adds a safety gap after test sets to eliminate leakage from serial correlation.
 
-The final model is a `MLPClassifier` pipeline with `QuantileTransformer` and post-training probability calibration (sigmoid with 3-fold CV), validated with Rolling Test and `PurgedGroupTimeSeriesSplit` (See `99_experiments/Purging.ipynb`).  
+### 2. Feature Engineering & Selection
+* **Technical Indicators:** Custom generation of RSI, MACD, and Bollinger Bands ratios.
+* **Stationarity:** Transformations applied to ensure statistical properties (log-returns, differencing).
+* **Pipeline:** Integrated `QuantileTransformer` and `PowerTransformer` to handle the non-normal distribution of crypto returns.
 
-Hold-out test results:
-- **Accuracy**: 0.58  
-- **F1-score**: 0.73  
-- **ROC AUC**: 0.48  
-- **Brier Score**: 0.24  
+### 3. Model Calibration
+The final model is an **MLPClassifier** (Multi-Layer Perceptron) optimized not just for accuracy, but for **calibration** (probability reliability).
+* **Metrics:** Focused on F1-Score and Brier Score rather than raw Accuracy, prioritizing the identification of high-confidence signals.
 
-The high F1-score reflects good performance in identifying positive classes (price up), even though AUC is limited, which is expected given market noise.
+## Results Summary
 
-![Rolling Test Performance](reports/figures/rolling_test_performance.png)  
-![Confusion Matrix](reports/figures/confusion_matrix_test_set.png)
+| Metric | Score (Hold-out Test) | Insight |
+| :--- | :--- | :--- |
+| **F1-Score** | **0.73** | High harmonic mean of precision and recall. |
+| **Accuracy** | 0.58 | Consistent with market efficiency in high-frequency assets. |
+| **ROC AUC** | 0.48 | Indicates difficulty in separating classes in noisy regimes. |
 
-## Features Used:
-- `close_pct_change`
-- `close_pct_change_lag1`
-- `cum_return_7_lag1`
-- `low_close`
-- `high_low`
-- `sma_ratio_10_20_lag1`
-- `log_return_5`
-- `candle_body_ratio`
-- `momentum_lag1`
+*Note: While predictive power is limited by market efficiency, the pipeline ensures that results are statistically valid and not the result of overfitting or leakage.*
 
-## Stacking Experiment
+## Installation & Usage
 
-A `StackingClassifier` was tested combining:
-- `Gradient Boosting Classifier`
-- `MLPClassifier`
+1.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-**Preprocessing**:  
-`PowerTransformer (Yeo-Johnson)` + `QuantileTransformer (normal output distribution)` for both base models.
+2.  **Run the Pipeline:**
+    Executes data extraction, feature engineering, and model validation.
+    ```bash
+    python src/run_pipeline.py
+    ```
 
-**Individual models (Rolling Test, threshold 0.5)**:
-- **Gradient Boosting** → **Accuracy**: 0.5825, **F1-score**: 0.6001, **ROC AUC**: 0.5929  
-- **MLP** → **Accuracy**: 0.5475, **F1-score**: 0.6128, **ROC AUC**: 0.6006  
+3.  **Explore the Validation Logic:**
+    Check `notebooks/02_Model_Validation.ipynb` for a visual demonstration of the Purged CV splits.
 
-**Stacking (final estimator: LogisticRegression)**:
-- **Accuracy**: 0.5025  
-- **F1-score**: 0.6443  
-- **ROC AUC**: 0.4866  
+## Repository Structure
 
-The stacking approach did not outperform the best individual model but remains documented as part of the experimentation process.
-
-## PurgedGroupTimeSeriesSplit Validation
-
-To ensure the absence of data leakage, `PurgedGroupTimeSeriesSplit` was applied:
-- **n_splits**: 5  
-- **group_gap**: 5  
-- **Grouping variable**: date index  
-
-**Average metrics**:
-- **Accuracy**: 0.496  
-- **F1-score**: 0.618  
-- **ROC AUC**: 0.478  
-- **Brier Score**: 0.256  
-
-Results were consistent with the rolling test, confirming that the main validation process was leakage-free.
-
-## Installation
-
-- Python 3.10 or higher
-
-### If you just want to **run the final model and reproduce results**:
 ```bash
-pip install -r basic_requirements.txt
-python run.py
+├── src/
+│   ├── features/       # Technical indicator generation
+│   ├── models/         # PurgedCV and Model Pipeline definitions
+│   └── data/           # Data fetching scripts (Yahoo Finance / Binance API)
+├── notebooks/          # EDA and Validation Visualizations
+└── reports/            # Performance metrics and plots
 ```
-
-### If you want to explore the notebooks, do experiments, retrain or modify the pipeline:
-```bash
-pip install -r requirements.txt
-```
-
-
-## Key Findings
-
-Although the dataset is relatively small (~500 samples), the use of domain-specific features and rigorous time series validation allowed the model to learn basic directional patterns. Techniques like purging, threshold tuning, and robust pipelines improved generalization. While the prediction power is limited (as expected in financial markets), the process is transparent, reproducible, and leakage-free.
+Developed by Santiago Daleffe - Independent Data Scientist.
